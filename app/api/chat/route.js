@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import { OpenAI } from "openai";
+import { PineconeClient } from "@pinecone-database/pinecone";
+import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 
+// Initialize Pinecone client
+const pinecone = new PineconeClient({
+    apiKey: process.env.PINECONE_API_KEY,
+    environment: process.env.PINECONE_ENVIRONMENT,
+});
+
+// Define the system prompt
 const systemPrompt = `Welcome to Headstarter's customer support! You are an AI assistant designed to help users with their queries about our interview practice platform. Your role is to provide clear, accurate, and friendly assistance. Here are some key points to remember:
 
 Introduction:
@@ -39,25 +48,49 @@ Be patient and empathetic, especially if the user is frustrated or confused.
 Use clear and concise language.`
 
 export async function POST(req) {
+    const { message } = await req.json();
+
+    // Initialize OpenAI client
     const openai = new OpenAI({
         baseURL: 'https://openrouter.ai/api/v1',
         apiKey: process.env.OPENROUTER_API_KEY
     });
-    const data = await req.json();
+
+    // Step 1: Embed the user query
+    const embeddings = new OpenAIEmbeddings({
+        openAIApiKey: process.env.OPENAI_API_KEY,
+    });
+    const queryEmbedding = await embeddings.embedDocument(message);
+
+    // Step 2: Retrieve relevant documents from Pinecone
+    const retrievals = await pinecone.index(process.env.PINECONE_INDEX_NAME).query({
+        vector: queryEmbedding,
+        topK: 5,
+        includeMetadata: true,
+    });
+
+    // Combine relevant document text for the context
+    const relevantChunks = retrievals.matches.map((match) => match.metadata.text);
+    const context = relevantChunks.join("\n");
+
+    // Step 3: Generate a response using OpenAI with the context from Pinecone
     const completion = await openai.chat.completions.create({
         messages: [
-            { "role": "system", "content": systemPrompt }, ...data],
+            { "role": "system", "content": `Use the following context: ${context}` },
+            { "role": "system", "content": systemPrompt },
+            { "role": "user", "content": message }
+        ],
         model: "gpt-4o-mini",
         stream: true,
     });
-    // we have a readable stream that sends the data to the client
+
+    // Stream the response back to the client
     const stream = new ReadableStream({
-        // we use async so this doesn't stall the main thread while waiting for data. we can have multiple connection at the same time
         async start(controller) {
             const encoder = new TextEncoder();
             try {
                 for await (const chunk of completion) {
-                    const content = chunk.choices[0]?.delta?.content
+                    const content = chunk.choices[0]?.delta?.content;
                     if (content) {
                         const text = encoder.encode(content);
                         controller.enqueue(text);
@@ -66,15 +99,10 @@ export async function POST(req) {
             } catch (error) {
                 console.error(error);
             } finally {
-                // we need to close the stream when we are done
                 controller.close();
             }
         }
     });
+
     return new NextResponse(stream);
-    // console.log(data);
-    // console.log(completion.choices[0].message.content);
-    // return NextResponse.json(
-    //     { message: completion.choices[0].message.content }, { status: 200 },
-    // );
 }

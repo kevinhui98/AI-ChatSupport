@@ -87,6 +87,19 @@ export async function POST(req) {
         model: "gpt-4o-mini",
         stream: true,
     });
+    try {
+        const queryEmbedding = await embeddings.embedDocuments(message);
+        await pinecone.index(index_name).namespace("( Default )").upsert({
+            id: message.id,
+            vector: queryEmbedding,
+        });
+    } catch (error) {
+        if (error.response && error.response.status === 403) {
+            console.error("Permission Denied: You are not allowed to sample from this model. Check your API key and permissions.");
+        } else {
+            console.error("An error occurred:", error.message);
+        }
+    }
     // we have a readable stream that sends the data to the client
     const stream = new ReadableStream({
         // we use async so this doesn't stall the main thread while waiting for data. we can have multiple connection at the same time

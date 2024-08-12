@@ -1,4 +1,4 @@
-# Headstarter Project2 - *AI-Chat Support*
+# Headstarter Project3 - *AI-Chat Support*
 
 Submitted by: **Kevin,Danyaal,Manal,Affan**
 

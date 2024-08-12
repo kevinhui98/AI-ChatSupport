@@ -2,6 +2,8 @@
 import { Box, Typography, Stack, TextField, Button } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import Chat from "./Components/chat"; // Corrected the file name to match the actual file name
+import Theme from "./Components/theme"; // Corrected the file name to match the actual file name
+import { ThemeProviderWithToggle } from './Components/theme'; // Corrected the file name to match the actual file name
 export default function Home() {
   const [messages, setMessages] = useState([
     {
@@ -51,31 +53,27 @@ export default function Home() {
     }
   });
   const [message, setMessage] = useState('');
+
   return (
-    <Box
-      width={'100vw'} height={'100vh'} flexDirection={'column'}
-      display={'flex'} justifyContent={'center'} alignItems={'center'}
-    >
-      <Stack direction={'column'} width={'500px'} height={'700px'} border={1} p={2} spacing={2}>
-        {/* <Stack direction={'column'} spacing={3} flexGrow={1} overflow={'auto'}>
-          {
-            messages.map((message, index) => {
-              return (
-                <Box key={index} display={"flex"} justifyContent={message.role === 'assistant' ? 'flex-start' : 'flex-end'}>
-                  <Box bgcolor={message.role === 'assistant' ? 'primary.main' : 'secondary.main'} p={2} borderRadius={'16px'}>
-                    {message.content}
-                  </Box>
-                </Box>
-              );
-            })
-          }
-        </Stack> */}
-        <Chat messages={messages} />
-        <Stack direction={'row'} spacing={2}>
-          <TextField label='Message' fullWidth value={message} onChange={(e) => setMessage(e.target.value)} />
-          <Button variant='contained' color='primary' onClick={sendMessage}>Send</Button>
+    <ThemeProviderWithToggle>
+      <Box
+        width={'100vw'} height={'100vh'} flexDirection={'column'}
+        display={'flex'} justifyContent={'center'} alignItems={'center'}
+      >
+        <Stack direction={'column'} width={'500px'} height={'700px'} border={1} p={2} spacing={2}>
+          <Chat messages={messages} />
+          <Stack direction={'row'} spacing={2}>
+            <TextField label='Message' fullWidth value={message} onChange={(e) => setMessage(e.target.value)}
+              inputProps={{
+                sx: { color: 'text.primary' }
+              }} focused />
+            <Button variant='contained' color='primary' onClick={sendMessage}>Send</Button>
+          </Stack>
+
         </Stack>
-      </Stack>
-    </Box>
+
+        {/* <Theme /> */}
+      </Box>
+    </ThemeProviderWithToggle>
   );
 }

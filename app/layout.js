@@ -8,6 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const images = ["/images/nflogo.png", "/images/XFL.png", "/images/CFL.png"];
 
@@ -21,10 +22,31 @@ export default function RootLayout({ children }) {
     return () => clearInterval(interval);
   }, [images.length]);
 
+  const handleScroll = () => {
+    const mainElement = document.querySelector("main");
+    mainElement.scrollIntoView({ behavior: "smooth", block: "end" });
+  };
+
+  const toggleDarkMode = () => {
+    setIsDarkMode((prevMode) => !prevMode);
+  };
+
   return (
     <html lang="en">
-      <body className={inter.className} style={styles.body}>
-        <header style={styles.header}>
+      <body
+        className={inter.className}
+        style={{
+          ...styles.body,
+          backgroundColor: isDarkMode ? "#1E1E1E" : "#F4F7FB",
+          color: isDarkMode ? "#F4F7FB" : "#1A2B4C",
+        }}
+      >
+        <header
+          style={{
+            ...styles.header,
+            backgroundColor: isDarkMode ? "#000000" : "#1A2B4C",
+          }}
+        >
           <div style={styles.logoContainer}>
             <div style={styles.imageWrapper}>
               {images.map((image, index) => (
@@ -44,11 +66,16 @@ export default function RootLayout({ children }) {
             </div>
             <div style={styles.logoText}>Everything Football</div>
           </div>
-          {/* <nav style={styles.nav}>
-            <a href="/" style={styles.navLink}>Home</a>
-            <a href="/explore" style={styles.navLink}>Explore More</a>
-            <a href="/contact" style={styles.navLink}>Contact Us</a>
-          </nav> */}
+          <button
+            style={{
+              ...styles.toggleButton,
+              backgroundColor: isDarkMode ? "#F4F7FB" : "#336699",
+              color: isDarkMode ? "#1E1E1E" : "white",
+            }}
+            onClick={toggleDarkMode}
+          >
+            {isDarkMode ? "Light Mode" : "Dark Mode"}
+          </button>
         </header>
         <main style={styles.main}>
           <section style={styles.hero}>
@@ -57,7 +84,12 @@ export default function RootLayout({ children }) {
               <p style={styles.heroSubtitle}>
                 Everything you need to know about football in one place
               </p>
-              <button style={styles.heroButton}>Get Started</button>
+              <button
+                style={styles.heroButton}
+                onClick={handleScroll}
+              >
+                Get Started
+              </button>
             </div>
             <div style={styles.heroImageContainer}>
               <img
@@ -73,7 +105,12 @@ export default function RootLayout({ children }) {
           </section>
           {children}
         </main>
-        <footer style={styles.footer}>
+        <footer
+          style={{
+            ...styles.footer,
+            backgroundColor: isDarkMode ? "#000000" : "#1A2B4C",
+          }}
+        >
           <p>© 2024 Football Analytics. All rights reserved.</p>
         </footer>
       </body>
@@ -85,10 +122,8 @@ const styles = {
   body: {
     margin: 0,
     fontFamily: "'Inter', sans-serif",
-    backgroundColor: "#F4F7FB",
   },
   header: {
-    backgroundColor: "#1A2B4C",
     padding: "20px 40px",
     color: "white",
     display: "flex",
@@ -114,22 +149,11 @@ const styles = {
     fontWeight: "bold",
     marginLeft: "10px", // Adjusted to avoid overlap with the logo
   },
-  nav: {
-    display: "flex",
-    alignItems: "center",
-    gap: "30px",
-  },
-  navLink: {
-    color: "white",
-    textDecoration: "none",
-    fontSize: "18px",
-    fontWeight: "500",
-  },
-  button: {
-    backgroundColor: "#336699",
-    color: "white",
-    border: "none",
+  toggleButton: {
+    position: "absolute",
+    right: "20px",
     padding: "10px 20px",
+    border: "none",
     borderRadius: "8px",
     cursor: "pointer",
     fontWeight: "bold",
@@ -149,12 +173,10 @@ const styles = {
   },
   heroTitle: {
     fontSize: "48px",
-    color: "#1A2B4C",
     marginBottom: "20px",
   },
   heroSubtitle: {
     fontSize: "24px",
-    color: "#333333",
     marginBottom: "30px",
   },
   heroButton: {
@@ -177,7 +199,6 @@ const styles = {
     transition: "opacity 1s ease-in-out",
   },
   footer: {
-    backgroundColor: "#1A2B4C",
     padding: "20px 0",
     color: "white",
     textAlign: "center",

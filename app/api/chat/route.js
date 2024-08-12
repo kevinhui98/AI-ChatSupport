@@ -78,7 +78,7 @@ export async function POST(req) {
     });
     const completion = await openai.chat.completions.create({
         messages: [
-            { "role": "system", "content": systemPrompt }, ...data],
+            { "role": "system", "content": systemPrompt }, ...message],
         model: "gpt-4o-mini",
         stream: true,
     });

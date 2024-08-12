@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { OpenAI } from "openai";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { Pinecone } from '@pinecone-database/pinecone';
 
 const systemPrompt = `Welcome to Headstarter's customer support! You are an AI assistant designed to help users with their queries about our interview practice platform. Your role is to provide clear, accurate, and friendly assistance. Here are some key points to remember:
 
@@ -39,11 +41,46 @@ Be patient and empathetic, especially if the user is frustrated or confused.
 Use clear and concise language.`
 
 export async function POST(req) {
-    const openai = new OpenAI({
-        baseURL: 'https://openrouter.ai/api/v1',
-        apiKey: process.env.OPENROUTER_API_KEY
+    // const openai = new OpenAI({
+    //     baseURL: 'https://openrouter.ai/api/v1',
+    //     apiKey: process.env.OPENROUTER_API_KEY
+    // });
+    // const data = await req.json();
+    const message = await req.json();
+    const lastMessage = message[message.length - 1];
+    const otherMessages = message.slice(0, message.length - 1);
+    // Initialize Pinecone client
+    const pinecone = new Pinecone({
+        apiKey: process.env.PINECONE_API_KEY,
     });
-    const data = await req.json();
+    // Initialize OpenAI client
+    // const openai = new OpenAI({
+    //     baseURL: 'https://openrouter.ai/api/v1',
+    //     apiKey: process.env.OPENROUTER_API_KEY
+    // });
+    const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+    });
+    // let index_name = "text-embedding-3-small"
+    // let index_name = "amazon.titan-embed-text-v2:0"
+    let index_name = "rag-project"
+    // await pinecone.createIndex({
+    //     name: index_name,
+    //     dimension: 2,
+    //     metric: 'euclidean',
+    //     spec: {
+    //         serverless: {
+    //             cloud: 'aws',
+    //             region: 'us-east-1'
+    //         }
+    //     }
+    // });
+    // const index = pinecone.index(index_name);
+    console.log('message', message);
+    // Step 1: Embed the user query
+    const embeddings = new OpenAIEmbeddings({
+        openAIApiKey: process.env.OPENAI_API_KEY,
+    });
     const completion = await openai.chat.completions.create({
         messages: [
             { "role": "system", "content": systemPrompt }, ...data],

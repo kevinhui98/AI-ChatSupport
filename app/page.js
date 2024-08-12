@@ -6,7 +6,7 @@ export default function Home() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: `Hi! I'm the Headstarter AI assistant. How can I help you today?`
+      content: `Hi! I'm the Pro Football assistant. How can I help your football curiosity today?`
     }]);
   const sendMessage = async () => {
     setMessage('')

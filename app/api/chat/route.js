@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 import { OpenAI } from "openai";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { Pinecone } from '@pinecone-database/pinecone';
+import {BedrockRuntimeClient, InvokeModelCommand} from "@aws-sdk/client-bedrock-runtime";
+import { BedrockEmbeddings } from "@langchain/aws";
+import { fromEnv } from "@aws-sdk/credential-provider-env";
+
+const client = new BedrockRuntimeClient({     region: "us-east-1",
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    } });
 
 const systemPrompt = `Welcome to Pro Football AI Chatbot! You are an AI assistant designed to help users with their queries about anything related to the sport of football or football rules, for the various leagues such as NFL, CFL, and the XFL. Your role is to provide clear, accurate, and friendly assistance. Here are some key points to remember:
 
@@ -73,21 +82,45 @@ export async function POST(req) {
     // const index = pinecone.index(index_name);
     console.log('message', message);
     // Step 1: Embed the user query
-    const embeddings = new OpenAIEmbeddings({
-        openAIApiKey: process.env.OPENAI_API_KEY,
+    const embeddings = new BedrockEmbeddings({
+        region: 'us-east-1',
+        credentials: { accessKeyId: process.env.AWS_ACCESS_KEY_ID, secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY },
+        model: 'amazon.titan-embed-text-v2:0'
     });
-    const completion = await openai.chat.completions.create({
-        messages: [
-            { "role": "system", "content": systemPrompt }, ...message],
-        model: "gpt-4o-mini",
-        stream: true,
-    });
+    // const embeddings = new OpenAIEmbeddings({
+    //     openAIApiKey: process.env.OPENAI_API_KEY,
+    // });
+    // const completion = await openai.chat.completions.create({
+    //     messages: [
+    //         { "role": "system", "content": systemPrompt }, ...message],
+    //     model: "gpt-4o-mini",
+    //     stream: true,
+    // });
+    async function getBedrockCompletion(systemPrompt, messages) {
+        const modelId = "amazon.titan-embed-text-v2:0"; // Correct this model ID as needed
+        const command = new InvokeModelCommand({
+            modelId,
+            messages: [
+                { role: "system", content: [{ text: systemPrompt }] },
+                ...messages.map(msg => ({ role: "user", content: [{ text: msg.content }] }))
+            ]
+        });
     try {
         const queryEmbedding = await embeddings.embedDocuments(message);
         await pinecone.index(index_name).namespace("( Default )").upsert({
             id: message.id,
             vector: queryEmbedding,
         });
+        const responseStream = new ReadableStream({ // Added
+            async start(controller) {
+                const encoder = new TextEncoder();
+                const content = "Your request has been processed";
+                const text = encoder.encode(content);
+                controller.enqueue(text);
+                controller.close();
+            }
+        });
+        return new NextResponse(responseStream);
     } catch (error) {
         if (error.response && error.response.status === 403) {
             console.error("Permission Denied: You are not allowed to sample from this model. Check your API key and permissions.");
@@ -122,4 +155,4 @@ export async function POST(req) {
     // return NextResponse.json(
     //     { message: completion.choices[0].message.content }, { status: 200 },
     // );
-}
+}}

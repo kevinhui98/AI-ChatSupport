@@ -38,6 +38,19 @@ GIF created with ...
 
 ## Notes
 
+## Resources
+- Bill Zhang's step by step code walkthrough: https://medium.com/@billzhangsc/building-an-ai-powered-support-assistant-with-next-js-and-openai-3c2c8e18cd4c
+- Bill zhang's original video walkthrough: https://www.loom.com/share/03b87bb24f9f462d8353807211f7c4a1
+- RAG Tutorial with OpenAI, LangChain, & Pinecone: https://www.loom.com/share/75af4269ab66450e943160c199895aa7
+- Free API to access the LLama 3.1 LLM: https://openrouter.ai/models/meta-llama/llama-3.1-8b-instruct:free
+- ChatGPT API Setup in Node.js: https://www.youtube.com/watch?v=emS9QL5EmXk&ab_channel=MervinPraison
+- How to Deploy a Node.js App with AWS EC2: https://www.youtube.com/watch?v=nQdyiK7-VlQ&ab_channel=SamMeech-Ward
+- Amazon Bedrock API Tutoral: https://www.youtube.com/watch?v=nSQrY-uPWLY&ab_channel=AWSDevelopers
+- LangChan (OpenAI) Vector Embeddings for beginners: https://www.youtube.com/watch?v=xdr5ByCpnd4&ab_channel=Ryan%26MattDataScience
+- Intro to RAG for AI (Retrieval Augmented Generation): https://www.youtube.com/watch?v=Y08Nn23o_mY&ab_channel=MatthewBerman
+- How to Improve LLM with RAG: https://www.youtube.com/watch?v=Ylz779Op9Pw&ab_channel=ShawTalebi
+- Build and deploy a RAG app with Pinecone: https://www.youtube.com/watch?v=EhlPDL4QrWY&ab_channel=LangChain
+  
 Describe any challenges encountered while building the app.
 
 ## License
